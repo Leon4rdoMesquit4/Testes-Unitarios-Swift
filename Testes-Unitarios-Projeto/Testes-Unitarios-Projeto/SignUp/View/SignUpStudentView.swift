@@ -1,25 +1,30 @@
 //
-//  LoginView.swift
+//  SignUpStudentView.swift
 //  Testes-Unitarios-Projeto
 //
-//  Created by Leonardo Mesquita Alves on 26/04/24.
+//  Created by Victor Hugo Pacheco Araujo on 26/04/24.
 //
 
 import SwiftUI
-import Firebase
+import FirebaseAuth
 
-struct LoginView: View {
+struct SignUpStudentView: View {
     
     @Environment(AuthManager.self) var authManager
- 
-    @Binding var userAuthenticated: Bool
-    
+
     @Binding var email: String
     @Binding var password: String
     @Binding var name: String
     
+    @Binding var userAuthenticated: Bool
+    
     var body: some View {
+        
         VStack {
+            
+            TextField("Nome", text: $name)
+                .textFieldStyle(.roundedBorder)
+            
             TextField("Email", text: $email)
                 .textFieldStyle(.roundedBorder)
                 .padding(.vertical)
@@ -27,11 +32,11 @@ struct LoginView: View {
             SecureField("Password", text: $password)
                 .textFieldStyle(.roundedBorder)
                 .padding(.bottom)
-            
+        
             NavigationLink {
                 HomeView(userAuthenticated: $userAuthenticated, email: $email, password: $password, name: $name)
             } label: {
-                Text("Login")
+                Text("Cadastrar")
                     .bold()
                     .padding()
                     .background(RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -39,45 +44,48 @@ struct LoginView: View {
                     .foregroundStyle(.white)
             }
             .simultaneousGesture(TapGesture().onEnded({ _ in
-                print("logou")
-                signInStudent()
+                signUpStudent()
             }))
             
         }
+        
         .padding()
+        .navigationTitle("Cadastro")
         
     }
- 
+    
 }
 
-extension LoginView {
+extension SignUpStudentView {
     
-    func signInStudent() {
+    func signUpStudent() {
         guard !email.isEmpty, !password.isEmpty else {
-            print("User can't log in")
+            print("User can't be created")
             return
         }
         
         Task {
             do {
-                let userReturned = try await authManager.login(email: email, password: password)
-                print("User Logged")
+                var userReturned = try await authManager.createStudentUser(email: email, password: password)
+                
+                userReturned.name = self.name
+                
+                print("User Created")
                 print(userReturned)
             } catch {
                 print("Error in create user: \(error.localizedDescription)")
             }
         }
     }
-    
 }
 
 #Preview {
     let auth = AuthManager()
-    return LoginView(
-        userAuthenticated: .constant(false),
-        email: .constant("1234@gmail.com"),
-        password: .constant("password"),
-        name: .constant("Victor")
+    return SignUpStudentView(
+        email: .constant("teste@gmail.com"),
+        password: .constant("12345678"),
+        name: .constant("Victor"),
+        userAuthenticated: .constant(false)
     )
     .environment(auth)
 }

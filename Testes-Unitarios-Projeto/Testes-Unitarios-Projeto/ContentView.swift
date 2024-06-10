@@ -8,17 +8,48 @@
 import SwiftUI
 
 struct ContentView: View {
+        
+    @Environment(AuthManager.self) var authManager
+    
+    @AppStorage("userAuthenticated") var userAuthenticated = false
+    
+    @State var email: String = ""
+    @State var password: String = ""
+    @State var name: String = ""
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        
+        if userAuthenticated == true {
+            
         }
-        .padding()
+        
+        VStack {
+            
+            HomeView(userAuthenticated: $userAuthenticated, email: $email, password: $password, name: $name)
+            
+        }
+        .onAppear(perform: {
+            let authUser = try? authManager.getStudentAuthenticated()
+            
+            if authUser == nil {
+                userAuthenticated = false
+            } else {
+                userAuthenticated = true
+            }
+           
+        })
+        
+        .fullScreenCover(isPresented: $userAuthenticated, content: {
+            AuthenticationView(userAuthenticated: $userAuthenticated, email: $email, password: $password, name: $name)
+        })
+        
     }
 }
 
 #Preview {
-    ContentView()
+    let authManager = AuthManager()
+    return NavigationStack {
+        ContentView()
+            .environment(authManager)
+    }
 }
